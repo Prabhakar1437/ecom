@@ -1,20 +1,20 @@
+import { connectMongoDB } from "@/config/dbConfig";
+import { UserModel } from "@/models/userModel";
 import { NextRequest, NextResponse } from "next/server";
+connectMongoDB();
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    console.log("searchParams", searchParams.get("age"));
-
-    const users = [
-      {
-        id: 1,
-        name: "Vats",
-      },
-      {
-        id: 2,
-        name: "Lovlu",
-      },
-    ];
+    const searchparams = request.nextUrl.searchParams; 
+    let filters:any ={};
+    
+    if(searchparams.has("name")){
+      filters.name = searchparams.get("name");
+    }
+    if(searchparams.has("age")){
+      filters.age = searchparams.get("age");
+    }
+    const users = await UserModel.find(filters);
     return NextResponse.json(
       {
         data: users,
@@ -37,13 +37,15 @@ export async function POST(request: NextRequest) {
   try {
     const reqBody = await request.json();
 
-    console.log( reqBody);
+    const newUser = new UserModel(reqBody);
+    const response  = await newUser.save();
 
     console.log("Table Name",request.nextUrl.searchParams.get("tableName"));
     
     return NextResponse.json(
       {
         message: "user created successfully",
+        data: response,
       },
       { status: 200 }
     );
